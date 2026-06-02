@@ -1,0 +1,8 @@
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>Tribunal_Evaluacion_Falsacion</developerName>
+    <evaluationType>string_comparison</evaluationType>
+    <parameters>
+        <parameterName>contains</parameterName>
+        <parameterValue>Premisa Inválida - Escalamiento Preventivo</parameterValue>
+    </parameters>
+</AiEvaluationDefinition>

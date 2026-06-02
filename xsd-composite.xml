@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="3.0">
+
+    <!-- ROOT ELEMENT -->
+    <xs:element name="CuneiformArtifact">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MetaHeader" type="MetaHeaderType"/>
+                <xs:element name="IndexingVectors" type="IndexingVectorsType" minOccurs="0"/>
+                <xs:element name="ProcessingProtocols" type="ProcessingProtocolsType"/>
+                <xs:element name="GlossaryRegistry" type="GlossaryRegistryType" minOccurs="0"/>
+                
+                <!-- CHOICE: Replica of 'oneOf' (Physical vs Composite) -->
+                <xs:choice>
+                    <xs:element name="PhysicalArtifact" type="PhysicalArtifactType"/>
+                    <xs:element name="CompositeStructure" type="CompositeStructureType"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- =============================================
+         PART I: METADATA AND UNIVERSAL CONNECTION
+         ============================================= -->
+    <xs:complexType name="MetaHeaderType">
+        <xs:sequence>
+            <xs:element name="ProvenanceData" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="museum_number" type="xs:string"/>
+                    <xs:attribute name="excavation_number" type="xs:string"/>
+                    <xs:attribute name="collection" type="xs:string"/>
+                    <xs:attribute name="primary_publication" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ExternalResources" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Resource" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:attribute name="authority" use="required">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:string">
+                                            <xs:enumeration value="CDLI"/>
+                                            <xs:enumeration value="ORACC"/>
+                                            <xs:enumeration value="ARCHIBAB"/>
+                                            <xs:enumeration value="ETCSL"/>
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                                <xs:attribute name="uri" type="xs:anyURI" use="required"/>
+                                <xs:attribute name="resource_id" type="xs:string" use="required"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Chronology" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="era" type="xs:string"/>
+                    <xs:attribute name="ruler" type="xs:string"/>
+                    <xs:attribute name="regnal_year" type="xs:string"/>
+                    <xs:attribute name="year_name" type="xs:string"/>
+                    <xs:attribute name="eponym" type="xs:string"/>
+                    <xs:attribute name="calendar_system" type="xs:string" default="standard_babylonian"/>
+                    <xs:attribute name="month" type="xs:string"/>
+                    <xs:attribute name="day" type="xs:integer"/>
+                    <xs:attribute name="is_intercalary" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="p_number" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:pattern value="[&amp;][PQ][0-9]+"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="project_scope" type="xs:string" default="undefined"/>
+    </xs:complexType>
+
+    <xs:complexType name="IndexingVectorsType">
+        <xs:sequence>
+            <xs:element name="Keyword" type="xs:string" maxOccurs="unbounded"/>
+            <xs:element name="GenreTag" type="xs:string" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="period_normalized" type="xs:string"/>
+        <xs:attribute name="geography_normalized" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART II: PROTOCOLS AND TRANSDUCTION
+         ============================================= -->
+    <xs:complexType name="ProcessingProtocolsType">
+        <xs:sequence>
+            <xs:element name="TransductionLogic">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="CDLIStrictMapping">
+                            <xs:complexType>
+                                <xs:attribute name="sz_map" type="xs:string" fixed="sz -> š (U+0161)"/>
+                                <xs:attribute name="s_cedilla_map" type="xs:string" fixed="s, -> ṣ (U+1E63)"/>
+                                <xs:attribute name="t_cedilla_map" type="xs:string" fixed="t, -> ṭ (U+1E6D)"/>
+                                <xs:attribute name="h_breve_map" type="xs:string" fixed="h matches ḫ (U+1E2B)"/>
+                                <xs:attribute name="aleph_map" type="xs:string" fixed="' -> ʾ (U+02BE)"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="PhonologicalKernels">
+                            <xs:complexType>
+                                <xs:attribute name="vowel_kernel" type="xs:string" default="[aeiu]"/>
+                                <xs:attribute name="consonant_kernel" type="xs:string" default="[bdgghklmnpqrsštwyzʾ]"/>
+                                <xs:attribute name="subscript_kernel" type="xs:string" default="[₀-₉x]+"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="DirectTransductionPsi">
+                            <xs:complexType>
+                                <xs:attribute name="active" type="xs:boolean" default="true"/>
+                                <xs:attribute name="input_format" type="xs:string" fixed="ascii_raw"/>
+                                <xs:attribute name="projection_rule" type="xs:string" default="Sum(N*M + D)^S"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="SpecialModes">
+                <xs:complexType>
+                    <xs:attribute name="use_math" type="xs:boolean" default="false"/>
+                    <xs:attribute name="use_lexical" type="xs:boolean" default="false"/>
+                    <xs:attribute name="detect_code_switching" type="xs:boolean" default="true"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="dialect_code" use="required">
+             <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="akk"/><xs:enumeration value="sux"/><xs:enumeration value="hit"/>
+                    <xs:enumeration value="arc"/><xs:enumeration value="elx"/><xs:enumeration value="peo"/>
+                    <xs:enumeration value="uga"/><xs:enumeration value="grc"/>
+                    <!-- Full dialect list assumed here for brevity -->
+                    <xs:enumeration value="akk-x-oldbab"/><xs:enumeration value="sux-x-emesal"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="encoding_mode" default="unicode">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="ascii"/>
+                    <xs:enumeration value="unicode"/>
+                    <xs:enumeration value="cdli_strict"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART III: LEXICAL REGISTRY (GLOSSARY)
+         ============================================= -->
+    <xs:complexType name="GlossaryRegistryType">
+        <xs:sequence>
+            <xs:element name="LexicalEntry" maxOccurs="unbounded" type="LexicalEntryType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="LexicalEntryType">
+        <xs:sequence>
+            <xs:element name="ExternalAuthorities" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="AuthorityLink" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:attribute name="dictionary_code" type="xs:string"/>
+                                <xs:attribute name="entry_id" type="xs:string"/>
+                                <xs:attribute name="uri" type="xs:anyURI"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Senses">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Sense" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:attribute name="pos" type="xs:string"/>
+                                <xs:attribute name="meaning" type="xs:string"/>
+                                <xs:attribute name="sgw" type="xs:string"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Bases">
+                 <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Base" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="citation_form" type="xs:string" use="required"/>
+        <xs:attribute name="guide_word" type="xs:string" use="required"/>
+        <xs:attribute name="part_of_speech" type="xs:string" use="required"/>
+        <xs:attribute name="is_compound" type="xs:boolean" default="false"/>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART IV: PHYSICAL AND COMPOSITE STRUCTURES
+         ============================================= -->
+    <xs:complexType name="PhysicalArtifactType">
+        <xs:sequence>
+            <xs:element name="Surface" maxOccurs="unbounded" type="SurfaceNodeType"/>
+        </xs:sequence>
+        <xs:attribute name="object_type" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="CompositeStructureType">
+        <xs:sequence>
+            <xs:element name="Divisions" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="TextBlock" type="TextLineType" minOccurs="0" maxOccurs="unbounded"/>
+                        <xs:element name="ScoreMatrix" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="CompositeLine" type="TextLineType"/>
+                                    <xs:element name="Exemplars">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="ExemplarLine" maxOccurs="unbounded">
+                                                    <xs:complexType>
+                                                        <xs:complexContent>
+                                                            <xs:extension base="TextLineType">
+                                                                <xs:attribute name="witness_id" type="xs:string" use="required"/>
+                                                            </xs:extension>
+                                                        </xs:complexContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                    <xs:attribute name="label" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="composite_id" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="SurfaceNodeType">
+        <xs:sequence>
+            <xs:element name="Column" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Line" maxOccurs="unbounded" type="TextLineType"/>
+                    </xs:sequence>
+                    <xs:attribute name="column_id" type="xs:integer" use="required"/>
+                    <xs:attribute name="roman_label" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="surface_tag" type="xs:string" use="required"/>
+        <xs:attribute name="surface_abbreviation" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART V: SEMANTIC TOKEN AND GDL TREE (RECURSIVE)
+         ============================================= -->
+    <xs:complexType name="TextLineType">
+        <xs:sequence>
+            <xs:element name="ATFCoordinates">
+                <xs:complexType>
+                    <xs:attribute name="full_label" type="xs:string" use="required"/>
+                    <xs:attribute name="surface" type="xs:string"/>
+                    <xs:attribute name="column" type="xs:string"/>
+                    <xs:attribute name="line" type="xs:string"/>
+                    <xs:attribute name="user_defined" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Tokens">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Token" maxOccurs="unbounded" type="SemanticTokenType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="line_number" type="xs:integer" use="required"/>
+        <xs:attribute name="language_shift" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="SemanticTokenType">
+        <xs:sequence>
+            <xs:element name="RawForm" type="xs:string"/>
+            <xs:element name="CleanLemma" type="xs:string"/>
+            
+            <xs:element name="LinguisticFeatures" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="normalization" type="xs:string"/>
+                    <xs:attribute name="stem" type="xs:string"/>
+                    <xs:attribute name="base" type="xs:string"/>
+                    <xs:attribute name="continuation" type="xs:string"/>
+                    <xs:attribute name="morphology" type="xs:string"/>
+                    <xs:attribute name="pos" type="xs:string"/>
+                    <xs:attribute name="rws" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+
+            <!-- Recursive GDL -->
+            <xs:element name="GDLGrammarEngine" type="GDLNodeType" minOccurs="0"/>
+
+            <xs:element name="MetrologicalAnalysis" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="unit" type="xs:string"/>
+                    <xs:attribute name="original_value" type="xs:string"/>
+                    <xs:attribute name="normalized_unit" type="xs:string"/>
+                    <xs:attribute name="normalized_value" type="xs:decimal"/>
+                    <xs:attribute name="system" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="Linkset" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="group_id" type="xs:string"/>
+                    <xs:attribute name="role" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+
+        <xs:attribute name="type" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="sign"/><xs:enumeration value="number"/>
+                    <xs:enumeration value="punctuation"/><xs:enumeration value="gap"/>
+                    <xs:enumeration value="big_gap"/><xs:enumeration value="semantic_void"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="neural_weight" type="xs:decimal" use="required"/>
+        <xs:attribute name="language_context" type="xs:string"/>
+        <xs:attribute name="is_damaged" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_corrected" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_uncertain" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_missing" type="xs:boolean" default="false"/>
+    </xs:complexType>
+
+    <!-- RECURSIVE DEFINITION FOR GRAPHEME TREE (GDL) -->
+    <xs:complexType name="GDLNodeType">
+        <xs:sequence>
+            <xs:element name="Modifiers" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Mod" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="VariableData" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="var_opener" type="xs:string"/>
+                    <xs:attribute name="var_closer" type="xs:string"/>
+                    <xs:attribute name="var_content" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            <!-- RECURSION: SubNodes invokes GDLNodeType again -->
+            <xs:element name="SubNodes" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Node" type="GDLNodeType" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="node_type" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="v"/><xs:enumeration value="s"/>
+                    <xs:enumeration value="n"/><xs:enumeration value="q"/>
+                    <xs:enumeration value="compound"/><xs:enumeration value="variable"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="value" type="xs:string"/>
+        <xs:attribute name="operator">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="times"/><xs:enumeration value="plus"/>
+                    <xs:enumeration value="opposing"/><xs:enumeration value="crossing"/>
+                    <xs:enumeration value="above"/><xs:enumeration value="containing"/>
+                    <xs:enumeration value="repeated"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="break_status">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="damaged"/><xs:enumeration value="missing"/><xs:enumeration value="none"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+</xs:schema>

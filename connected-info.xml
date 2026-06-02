@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns:g="http://oracc.org/ns/gdl/1.0"
+           elementFormDefault="qualified" 
+           attributeFormDefault="qualified"
+           version="6.0">
+
+    <!-- ROOT ELEMENT -->
+    <xs:element name="CuneiformArtifact">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MetaHeader" type="MetaHeaderType"/>
+                <xs:element name="UniversalConnectivity" type="UniversalConnectivityType" minOccurs="0"/>
+                <xs:element name="ProcessingProtocols" type="ProcessingProtocolsType"/>
+                <xs:element name="PeriodConfiguration" type="PeriodSpecificRulesType"/>
+                
+                <!-- CHOICE: Physical vs Composite (Zero Data Loss Integrity) -->
+                <xs:choice>
+                    <xs:element name="PhysicalArtifact" type="PhysicalArtifactType"/>
+                    <xs:element name="CompositeStructure" type="CompositeStructureType"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- =============================================
+         PART I: CHRONOLOGY & DATING SYNTAX (Enhanced)
+         ============================================= -->
+    <xs:complexType name="MetaHeaderType">
+        <xs:sequence>
+            <xs:element name="ChronologyData">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="DateString">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                        <!-- Regex Update: Supports spaces in Dynasty ("Ur III"), "=" in Year (Limmu), and broken segments -->
+                                        <xs:attribute name="syntax_validation" 
+                                                      fixed="^([A-Za-z0-9\s]+|--)\.([A-Za-z0-9\-\.\s]+|--)\.([A-Za-z0-9\=\-\.\s]+|00|--)\.([A-Za-z0-9\s]+|00|--)\.([0-9]{2}|00|--)$"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="Components">
+                            <xs:complexType>
+                                <xs:attribute name="dynasty" type="xs:string"/>
+                                <xs:attribute name="ruler" type="xs:string"/>
+                                <xs:attribute name="year_formula" type="xs:string">
+                                    <xs:annotation><xs:documentation>Supports 'Year=Symbol' syntax for Limmu (e.g. 3=Ibni-Adad)</xs:documentation></xs:annotation>
+                                </xs:attribute>
+                                <xs:attribute name="month_name" type="xs:string"/>
+                                <xs:attribute name="day_number" type="xs:string"/>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ProvenanceData" minOccurs="0" type="ProvenanceDataType"/>
+        </xs:sequence>
+        <xs:attribute name="p_number" use="required" type="PNumberType"/>
+        <xs:attribute name="project_scope" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- NEW: UNIVERSAL CONNECTIVITY MODULE (LOD) -->
+    <xs:complexType name="UniversalConnectivityType">
+        <xs:sequence>
+            <xs:element name="LinkedResource" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="repository" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="CDLI"/>
+                                <xs:enumeration value="ORACC"/>
+                                <xs:enumeration value="ARCHIBAB"/>
+                                <xs:enumeration value="ETCSL"/>
+                                <xs:enumeration value="EPSD2"/>
+                                <xs:enumeration value="BM_Collections"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute name="identifier_type" use="required">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:enumeration value="P_Number"/>
+                                <xs:enumeration value="Q_Number"/>
+                                <xs:enumeration value="Museum_Number"/>
+                                <xs:enumeration value="DOI"/>
+                                <xs:enumeration value="ARK"/>
+                                <xs:enumeration value="URI"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute name="value" type="xs:string" use="required"/>
+                    <xs:attribute name="relationship" type="xs:string" default="owl:sameAs"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART II: PERIOD SPECIFIC RULES
+         ============================================= -->
+    <xs:complexType name="PeriodSpecificRulesType">
+        <xs:attribute name="period" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="ED_I_II"/>
+                    <xs:enumeration value="ED_IIIa"/>
+                    <xs:enumeration value="ED_IIIb"/>
+                    <xs:enumeration value="Ebla"/>
+                    <xs:enumeration value="Old_Akkadian"/>
+                    <xs:enumeration value="Harappan"/>
+                    <xs:enumeration value="Lagash_II"/>
+                    <xs:enumeration value="Ur_III"/>
+                    <xs:enumeration value="Old_Assyrian"/>
+                    <xs:enumeration value="Early_Old_Babylonian"/>
+                    <xs:enumeration value="Old_Babylonian"/>
+                    <xs:enumeration value="Middle_Assyrian"/>
+                    <xs:enumeration value="Middle_Babylonian"/>
+                    <xs:enumeration value="Middle_Hittite"/>
+                    <xs:enumeration value="Neo_Assyrian"/>
+                    <xs:enumeration value="Neo_Babylonian"/>
+                    <xs:enumeration value="Late_Babylonian"/>
+                    <xs:enumeration value="Achaemenid"/>
+                    <xs:enumeration value="Hellenistic"/>
+                    <xs:enumeration value="Sassanian"/>
+                    <xs:enumeration value="Uncertain"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="dating_formula" type="xs:string"/>
+        <xs:attribute name="lemmatization_style" fixed="OB_Guidelines_Oracc"/>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART III: PROCESSING PROTOCOLS (ATF & REGEX)
+         ============================================= -->
+    <xs:complexType name="ProcessingProtocolsType">
+        <xs:sequence>
+            <xs:element name="ATFEditionType">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="CDLI_ATF"/>
+                        <xs:enumeration value="Primer"/>
+                        <xs:enumeration value="Quick_Reference"/>
+                        <xs:enumeration value="Labels"/>
+                        <xs:enumeration value="Translations"/>
+                        <xs:enumeration value="Metrology"/>
+                        <xs:enumeration value="Protocols"/>
+                        <xs:enumeration value="Heaps"/>
+                        <xs:enumeration value="Composites"/>
+                        <xs:enumeration value="Commentary"/>
+                        <xs:enumeration value="Linkage"/>
+                        <xs:enumeration value="Bilinguals"/>
+                        <xs:enumeration value="Lexical_Texts"/>
+                        <xs:enumeration value="Maths"/>
+                        <xs:enumeration value="Complex_Layouts"/>
+                        <xs:enumeration value="Advanced_Conventions"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element name="RegexKernels">
+                <xs:complexType>
+                    <xs:attribute name="lV" type="xs:string" fixed="[aeiu]"/>
+                    <xs:attribute name="lC" type="xs:string" fixed="[ʾbdeghḫiŋklmnpqrsšṣśtṭuwyz]"/>
+                    <xs:attribute name="uV" type="xs:string" fixed="[AEIU]"/>
+                    <xs:attribute name="uC" type="xs:string" fixed="[ʾBDEGHḪIŊKLMNPQRSŠṢŚTṬUWYZ]"/>
+                    <xs:attribute name="subscripts" type="xs:string" fixed="[₀-₉]+"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="dialect" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <!-- =============================================
+         PART IV: ORACC GDL ENGINE (Strict Namespace g:)
+         Integrated from raw text specifications
+         ============================================= -->
+    <xs:attributeGroup name="GDLMetaAttributes">
+        <!-- Structural Attributes -->
+        <xs:attribute name="break" type="BreakType"/> 
+        <xs:attribute name="o" type="xs:string"/> <!-- Opener -->
+        <xs:attribute name="c" type="xs:string"/> <!-- Closer -->
+        <xs:attribute name="ho" fixed="1"/> <!-- Half Square Bracket Open -->
+        <xs:attribute name="hc" fixed="1"/> <!-- Half Square Bracket Close -->
+        <xs:attribute name="em" fixed="1"/> <!-- Emphatic Hyphen -->
+        
+        <!-- Identification & System -->
+        <xs:attribute name="sign" type="xs:string"/>
+        <xs:attribute name="utf8" type="xs:string"/>
+        <xs:attribute name="oid" type="xs:string"/>
+        <xs:attribute name="delim" type="xs:string"/>
+        
+        <!-- Variables (Algebraic) -->
+        <xs:attribute name="varo" type="xs:string"/>
+        <xs:attribute name="vari" type="xs:string"/>
+        <xs:attribute name="varc" type="xs:string"/>
+        
+        <!-- Status Flags (estado.banderas) -->
+        <xs:attribute name="collated" type="xs:boolean"/>
+        <xs:attribute name="queried" type="xs:boolean"/>
+        <xs:attribute name="remarked" type="xs:boolean"/>
+        <xs:attribute name="uflag1" type="xs:boolean"/>
+        <xs:attribute name="uflag2" type="xs:boolean"/>
+        <xs:attribute name="uflag3" type="xs:boolean"/>
+        <xs:attribute name="uflag4" type="xs:boolean"/>
+        
+        <!-- Status Spans (estado.intervalos) -->
+        <xs:attribute name="status_span">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="ok"/>
+                    <xs:enumeration value="deleted"/> <!-- borrado -->
+                    <xs:enumeration value="excised"/> <!-- extirpado -->
+                    <xs:enumeration value="implied"/> <!-- implícito -->
+                    <xs:enumeration value="perhaps"/> <!-- tal vez -->
+                    <xs:enumeration value="supplied"/> <!-- suministrado -->
+                    <xs:enumeration value="some"/> <!-- algunos -->
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <!-- Spans (Surrogates/Damage) -->
+        <xs:attribute name="breakStart" fixed="1"/>
+        <xs:attribute name="breakEnd" type="xs:IDREF"/>
+        <xs:attribute name="damageStart" fixed="1"/>
+        <xs:attribute name="damageEnd" type="xs:IDREF"/>
+        <xs:attribute name="surroStart" fixed="1"/>
+        <xs:attribute name="surroEnd" type="xs:IDREF"/>
+    </xs:attributeGroup>
+
+    <!-- GDL Node Types (The Core Grapheme Engine) -->
+    <xs:complexType name="SemanticTokenType">
+        <xs:sequence>
+            <xs:choice>
+                <xs:element name="Value" type="GDLValueType"/> <!-- v -->
+                <xs:element name="Sign" type="GDLSignType"/>   <!-- s -->
+                <xs:element name="Number" type="GDLNumberType"/> <!-- n -->
+                <xs:element name="Compound" type="GDLCompoundType"/> <!-- c -->
+                <xs:element name="Qualified" type="GDLQualifiedType"/> <!-- q -->
+                <xs:element name="Punctuation" type="GDLPunctuationType"/> <!-- p -->
+                <xs:element name="Determinative" type="GDLDeterminativeType"/> <!-- det -->
+                <xs:element name="Gloss" type="GDLGlossType"/> <!-- glo -->
+                <xs:element name="NonGrapheme" type="GDLNonGraphemeType"/> <!-- x -->
+            </xs:choice>
+            
+            <!-- Lemmatization (OB Guidelines) -->
+            <xs:element name="Lemmatization" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="cacf" type="xs:string">
+                        <xs:annotation><xs:documentation>Canonical Citation Form (sin mimation)</xs:documentation></xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="normalization" type="xs:string">
+                        <xs:annotation><xs:documentation>Normalization (con mimation ej. ši-ip-ri)</xs:documentation></xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="pos" type="xs:string"/>
+                    <xs:attribute name="guide_word" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="GDLMetaAttributes"/>
+    </xs:complexType>
+
+    <!-- Specific GDL Types -->
+    <xs:complexType name="GDLValueType"> <!-- v -->
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="form" type="xs:string"/>
+                <xs:attribute name="lang" type="xs:language"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="GDLSignType"> <!-- s -->
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="list_code" type="xs:string"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="GDLPunctuationType"> <!-- p -->
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="*"/> <!-- Bullet/Generic -->
+                            <xs:enumeration value=":"/> <!-- Vertical Colon -->
+                            <xs:enumeration value=":'"/> <!-- Colon + Right Quote -->
+                            <xs:enumeration value=':"'/> <!-- Colon + Double Quote -->
+                            <xs:enumeration value=":."/> <!-- Triple Wedge -->
+                            <xs:enumeration value="::"/> <!-- Unspecified -->
+                            <xs:enumeration value="/"/> <!-- Word Separator -->
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- Determinative (det = element g:d) -->
+    <xs:complexType name="GDLDeterminativeType">
+        <xs:sequence>
+            <xs:element name="Content" type="SemanticTokenType" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="pos" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="pre"/>
+                    <xs:enumeration value="post"/>
+                    <xs:enumeration value="free"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="role" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="phonetic"/>
+                    <xs:enumeration value="semantic"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- Gloss (glo = element g:gloss) -->
+    <xs:complexType name="GDLGlossType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="lang"/>
+                            <xs:enumeration value="text"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="GDLCompoundType">
+        <xs:sequence>
+            <xs:element name="CompoundModel">
+                <xs:complexType>
+                    <xs:choice>
+                        <xs:element name="Unary" type="GDLUnaryType"/>
+                        <xs:element name="Binary" type="GDLBinaryType"/>
+                        <xs:element name="Ternary" type="GDLTernaryType"/>
+                    </xs:choice>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="BreakType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="damaged"/>
+            <xs:enumeration value="missing"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:complexType name="GDLUnaryType">
+        <xs:sequence><xs:element name="Single" type="SemanticTokenType"/></xs:sequence>
+        <xs:attribute name="operator" fixed="repeated"/>
+    </xs:complexType>
+    
+    <xs:complexType name="GDLBinaryType">
+        <xs:sequence>
+            <xs:element name="First" type="SemanticTokenType"/>
+            <xs:element name="Second" type="SemanticTokenType"/>
+        </xs:sequence>
+        <xs:attribute name="operator" type="xs:string"/>
+    </xs:complexType>
+    
+    <xs:complexType name="GDLTernaryType">
+         <xs:sequence>
+            <xs:element name="First" type="SemanticTokenType"/>
+            <xs:element name="Second" type="SemanticTokenType"/>
+            <xs:element name="Third" type="SemanticTokenType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="GDLNumberType">
+        <xs:simpleContent><xs:extension base="xs:string"/></xs:simpleContent>
+    </xs:complexType>
+    
+    <xs:complexType name="GDLQualifiedType">
+        <xs:sequence><xs:element name="Entity" type="SemanticTokenType"/></xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="GDLNonGraphemeType">
+         <xs:attribute name="type" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:simpleType name="PNumberType">
+        <xs:restriction base="xs:string"><xs:pattern value="[&amp;][PQ][0-9]+"/></xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="ProvenanceDataType">
+        <xs:attribute name="museum_number" type="xs:string"/>
+    </xs:complexType>
+    
+    <xs:complexType name="PhysicalArtifactType"><xs:sequence/></xs:complexType>
+    <xs:complexType name="CompositeStructureType"><xs:sequence/></xs:complexType>
+
+</xs:schema>

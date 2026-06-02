@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+
+    <flow name="publish-platform-event-flow">
+        <http:listener config-ref="HTTP_Listener_config" path="/alro/v6/ingest" doc:name="Listener API"/>
+        
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><!]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        
+        <salesforce:publish-platform-event-message 
+            platformEventName="Dashboard_Update__e" 
+            config-ref="Salesforce_Config" 
+            doc:name="Publish Dashboard Update Event"/>
+    </flow>
+</mule>

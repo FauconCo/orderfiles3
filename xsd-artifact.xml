@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- Root Element -->
+    <xs:element name="CuneiformArtifact">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="MetaHeader" type="MetaHeaderType"/>
+                <xs:element name="ProcessingProtocols" type="ProcessingProtocolsType"/>
+                <xs:element name="GlossaryRegistry" type="GlossaryRegistryType" minOccurs="0"/>
+                <!-- MEJORA 1: Elección entre Objeto Físico o Estructura Lógica (Compuestos) -->
+                <xs:choice>
+                    <xs:element name="PhysicalArtifact" type="PhysicalArtifactType"/>
+                    <xs:element name="CompositeStructure" type="CompositeStructureType"/>
+                </xs:choice>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- 1. Metadata & Chronology -->
+    <xs:complexType name="MetaHeaderType">
+        <xs:sequence>
+            <!-- MEJORA 2: Motor Cronológico Completo -->
+            <xs:element name="Chronology" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="era" type="xs:string" use="optional">
+                        <xs:annotation><xs:documentation>e.g., Seleucid (SE), Sassanian</xs:documentation></xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="ruler" type="xs:string" use="optional"/>
+                    <xs:attribute name="regnal_year" type="xs:string" use="optional"/>
+                    <xs:attribute name="year_name" type="xs:string" use="optional">
+                        <xs:annotation><xs:documentation>Ur III/OB 'mu-iti' names</xs:documentation></xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="eponym" type="xs:string" use="optional">
+                        <xs:annotation><xs:documentation>Assyrian 'Limmu' system</xs:documentation></xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="calendar_system" type="xs:string" default="standard_babylonian"/>
+                    <xs:attribute name="month" type="xs:string" use="optional"/>
+                    <xs:attribute name="day" type="xs:integer" use="optional"/>
+                    <xs:attribute name="is_intercalary" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="p_number" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <!-- Acepta P-numbers (Físicos) y Q-numbers (Compuestos) -->
+                    <xs:pattern value="[&amp;][PQ][0-9]+"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="project_scope" type="xs:string" default="undefined"/>
+    </xs:complexType>
+
+    <!-- 2. Protocols and Taxonomy -->
+    <xs:complexType name="ProcessingProtocolsType">
+        <xs:sequence>
+            <xs:element name="SpecialModes">
+                <xs:complexType>
+                    <xs:attribute name="use_math" type="xs:boolean" default="false"/>
+                    <xs:attribute name="use_lexical" type="xs:boolean" default="false"/>
+                    <xs:attribute name="detect_code_switching" type="xs:boolean" default="true"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="dialect_code" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <!-- Taxonomía Expandida (Parte III) -->
+                    <xs:enumeration value="akk"/>
+                    <xs:enumeration value="akk-x-earakk"/>
+                    <xs:enumeration value="akk-x-oldakk"/>
+                    <xs:enumeration value="akk-x-ur3"/>
+                    <xs:enumeration value="akk-x-oldass"/>
+                    <xs:enumeration value="akk-x-oldbab"/>
+                    <xs:enumeration value="akk-x-midass"/>
+                    <xs:enumeration value="akk-x-midbab"/>
+                    <xs:enumeration value="akk-x-neoass"/>
+                    <xs:enumeration value="akk-x-neobab"/>
+                    <xs:enumeration value="akk-x-ltebab"/>
+                    <xs:enumeration value="akk-x-stdbab"/>
+                    <xs:enumeration value="akk-x-conakk"/>
+                    <xs:enumeration value="akk-x-norm"/>
+                    <xs:enumeration value="akk-x-graph"/>
+                    <xs:enumeration value="sux"/>
+                    <xs:enumeration value="sux-x-emesal"/>
+                    <xs:enumeration value="sux-x-syll"/>
+                    <xs:enumeration value="sux-x-udgalnun"/>
+                    <!-- Nuevos Idiomas -->
+                    <xs:enumeration value="arc"/> <!-- Arameo -->
+                    <xs:enumeration value="elx"/> <!-- Elamita -->
+                    <xs:enumeration value="peo"/> <!-- Persa Antiguo -->
+                    <xs:enumeration value="uga"/> <!-- Ugarítico -->
+                    <xs:enumeration value="grc"/> <!-- Griego/Graeco-Babyloniaca -->
+                    <xs:enumeration value="hit"/> <!-- Hitita -->
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="encoding_mode" default="unicode">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="ascii"/>
+                    <xs:enumeration value="unicode"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- 3. Glossary -->
+    <xs:complexType name="GlossaryRegistryType">
+        <xs:sequence>
+            <xs:element name="Entry" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Bases" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Base" type="xs:string" maxOccurs="unbounded"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="Senses">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="Sense" maxOccurs="unbounded">
+                                        <xs:complexType>
+                                            <xs:simpleContent>
+                                                <xs:extension base="xs:string">
+                                                    <xs:attribute name="pos" type="xs:string" use="required"/>
+                                                    <xs:attribute name="sgw" type="xs:string"/>
+                                                </xs:extension>
+                                            </xs:simpleContent>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="citation_form" type="xs:string" use="required"/>
+                    <xs:attribute name="guide_word" type="xs:string" use="required"/>
+                    <xs:attribute name="part_of_speech" type="xs:string" use="required"/>
+                    <xs:attribute name="is_compound" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- 4. Artifact Topology -->
+    <xs:complexType name="PhysicalArtifactType">
+        <xs:sequence>
+            <xs:element name="Surface" maxOccurs="unbounded" type="SurfaceNodeType"/>
+        </xs:sequence>
+        <xs:attribute name="object_type" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- MEJORA 3: Estructura de Compuestos y Scores -->
+    <xs:complexType name="CompositeStructureType">
+        <xs:sequence>
+            <xs:element name="Divisions" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="ScoreMatrix" minOccurs="0">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element name="CompositeLine" type="TextLineType"/>
+                                    <xs:element name="Exemplars">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element name="ExemplarLine" maxOccurs="unbounded">
+                                                    <xs:complexType>
+                                                        <xs:complexContent>
+                                                            <xs:extension base="TextLineType">
+                                                                <xs:attribute name="witness_id" type="xs:string" use="required"/>
+                                                            </xs:extension>
+                                                        </xs:complexContent>
+                                                    </xs:complexType>
+                                                </xs:element>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element name="TextBlock" minOccurs="0" maxOccurs="unbounded" type="TextLineType"/>
+                    </xs:sequence>
+                    <xs:attribute name="type" type="xs:string" use="required"/>
+                    <xs:attribute name="label" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="composite_id" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="SurfaceNodeType">
+        <xs:sequence>
+            <xs:element name="Column" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Line" maxOccurs="unbounded" type="TextLineType"/>
+                    </xs:sequence>
+                    <xs:attribute name="id" type="xs:integer" use="required"/>
+                    <xs:attribute name="roman_label" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="tag" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="@obverse"/>
+                    <xs:enumeration value="@reverse"/>
+                    <xs:enumeration value="@bottom"/>
+                    <xs:enumeration value="@edge"/>
+                    <xs:enumeration value="@left"/>
+                    <xs:enumeration value="@right"/>
+                    <xs:enumeration value="@top"/>
+                    <xs:enumeration value="@surface"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="abbreviation" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="TextLineType">
+        <xs:sequence>
+            <xs:element name="ATFCoordinates">
+                <xs:complexType>
+                    <xs:attribute name="full_label" type="xs:string" use="required"/>
+                    <xs:attribute name="surface" type="xs:string"/>
+                    <xs:attribute name="column" type="xs:string"/>
+                    <xs:attribute name="line" type="xs:string"/>
+                    <xs:attribute name="user_defined" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="Tokens">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="Token" maxOccurs="unbounded" type="SemanticTokenType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="number" type="xs:integer" use="required"/>
+        <!-- MEJORA 4: Cambio de Idioma en Línea -->
+        <xs:attribute name="language_shift" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- 5. Semantic Token Avanzado -->
+    <xs:complexType name="SemanticTokenType">
+        <xs:sequence>
+            <xs:element name="RawForm" type="xs:string"/>
+            <xs:element name="CleanLemma" type="xs:string"/>
+            
+            <xs:element name="LinguisticFeatures" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="normalization" type="xs:string"/>
+                    <xs:attribute name="stem" type="xs:string"/>
+                    <xs:attribute name="base" type="xs:string"/>
+                    <xs:attribute name="continuation" type="xs:string"/>
+                    <xs:attribute name="morphology" type="xs:string"/>
+                    <!-- Nuevos atributos L2 -->
+                    <xs:attribute name="secondary_morphology" type="xs:string"/>
+                    <xs:attribute name="pos" type="xs:string"/>
+                    <xs:attribute name="guide_word" type="xs:string"/>
+                    <xs:attribute name="rws" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            
+            <!-- MEJORA 5: Análisis Grafémico (GDL) -->
+            <xs:element name="GraphemicAnalysis" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="sign_name" type="xs:string"/>
+                    <xs:attribute name="value" type="xs:string"/>
+                    <xs:attribute name="modifier" type="xs:string"/>
+                    <xs:attribute name="is_compound" type="xs:boolean"/>
+                    <xs:attribute name="compound_structure" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            
+            <!-- MEJORA 6: Metrología y Matemáticas -->
+            <xs:element name="MetrologicalAnalysis" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="unit" type="xs:string"/>
+                    <xs:attribute name="original_value" type="xs:string"/>
+                    <xs:attribute name="normalized_unit" type="xs:string" default="silver_g"/>
+                    <xs:attribute name="normalized_value" type="xs:decimal"/>
+                    <xs:attribute name="system" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+            
+            <!-- MEJORA 7: Linksets para dependencias discontinuas -->
+            <xs:element name="Linkset" minOccurs="0">
+                <xs:complexType>
+                    <xs:attribute name="group_id" type="xs:string"/>
+                    <xs:attribute name="role" type="xs:string"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        
+        <xs:attribute name="type" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="sign"/>
+                    <xs:enumeration value="number"/>
+                    <xs:enumeration value="punctuation"/>
+                    <xs:enumeration value="gap"/>
+                    <xs:enumeration value="big_gap"/>
+                    <xs:enumeration value="semantic_void"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="neural_weight" type="xs:decimal" use="required"/>
+        <xs:attribute name="language_context" type="xs:string"/>
+        
+        <!-- Leiden Flags -->
+        <xs:attribute name="is_damaged" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_corrected" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_uncertain" type="xs:boolean" default="false"/>
+        <xs:attribute name="is_missing" type="xs:boolean" default="false"/>
+    </xs:complexType>
+
+</xs:schema>
